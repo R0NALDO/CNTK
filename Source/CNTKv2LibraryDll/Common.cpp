@@ -352,8 +352,24 @@ namespace CNTK
 
     /*static*/ Axis::UniqueDynamicAxesNames Axis::s_uniqueDynamicAxisNames;
 
-    /*static*/ const std::vector<Axis> Axis::DefaultInputVariableDynamicAxes = { Axis::DefaultDynamicAxis(), Axis::DefaultBatchAxis() };
-    /*static*/ const std::vector<Axis> Axis::UnknownDynamicAxes = { Axis(SentinelStaticAxisIndexValueForUnknownAxes) };
+    static std::shared_ptr<std::vector<Axis>> s_defaultInputVariableDynamicAxes, s_unknownDynamicAxes;
+    static std::once_flag s_initDefaultInputVariableDynamicAxesFlag, s_initUnknownDynamicAxesFlag;
+
+    /*static*/ const std::vector<Axis>& Axis::DefaultInputVariableDynamicAxes() 
+    {
+      std::call_once(s_initDefaultInputVariableDynamicAxesFlag, []{
+        s_defaultInputVariableDynamicAxes.reset(new std::vector<Axis>({ Axis::DefaultDynamicAxis(), Axis::DefaultBatchAxis() }));
+      });
+      return *s_defaultInputVariableDynamicAxes;
+    }
+
+    /*static*/ const std::vector<Axis>& Axis::UnknownDynamicAxes()
+    {
+      std::call_once(s_initUnknownDynamicAxesFlag, []{
+        s_unknownDynamicAxes.reset(new std::vector<Axis>({ Axis(SentinelStaticAxisIndexValueForUnknownAxes) }));
+      });
+      return *s_unknownDynamicAxes;
+    }
 
     /*static*/ const Axis& Axis::DefaultDynamicAxis()
     {
